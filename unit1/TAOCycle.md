@@ -18,7 +18,7 @@
         *   The Tools the Agent has access to
         *   The Thought-Action-Observation Cycle instructions.
 
-        ![alt text](image.png)
+        ![alt text](images/image.png)
 
 **Example: Alfred, the Weather Agent**
 
