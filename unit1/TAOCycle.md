@@ -1,5 +1,3 @@
-Okay, here's a breakdown of the core components of AI Agents and the Thought-Action-Observation cycle, summarized for clarity:
-
 **Core Components of AI Agents:**
 
 *   Agents operate in a cycle of:
