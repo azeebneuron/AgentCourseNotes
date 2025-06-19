@@ -14,3 +14,5 @@ This README serves as an index to the notes, providing links to each individual 
 ## Acknowledgements
 
 These notes are based directly on content from the Hugging Face AI Agents Course. I am deeply grateful to the Hugging Face team for creating and freely sharing this comprehensive educational resource.
+
+Well I have already made so many agents, Do I still need to complete this course? Hmmm! I guess yes. I Have mostly learned the monkey way, might need a proper education in this
