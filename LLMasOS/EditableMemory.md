@@ -92,3 +92,105 @@ This loop of reading, understanding user intent, and choosing the correct CRUD f
   * **Dynamic User Profiles**: An agent can maintain an evolving profile of the user. It can update preferences, track changing goals, and maintain a current understanding of the user's state without accumulating outdated information.
   * **Task Management**: An agent managing a to-do list can add tasks (`add_memory`), update their status (`edit_memory`), and remove them upon completion (`delete_memory`).
 
+---
+
+Of course\! Here is a detailed explanation of the `Implementing_Editable_Memory.py` notebook. This guide breaks down each section of the code to explain how an agent with self-editing memory is built from scratch.
+
+-----
+
+### A Walkthrough of the Editable Memory Notebook
+
+This [notebook](Implementing_Editable_Memory.ipynb) provides a hands-on demonstration of how to give a Large Language Model (LLM) the ability to manage its own memory. Instead of using complex, pre-built frameworks, it uses the OpenAI API's native **tool-calling** feature to create a simple yet powerful agent that can remember, update, and reason about information over multiple steps.
+
+-----
+
+### Section 1: Structuring the LLM's Context Window
+
+The notebook begins by explaining the core challenge: an LLM's limited **context window**. To build a capable agent, we must intelligently manage what goes into this context.
+
+The notebook structures the context window with two key components:
+
+  * A **system prompt** that instructs the agent on its behavior and personality.
+  * A **conversation history** that contains the ongoing dialogue.
+
+More advanced agents, like MemGPT, also reserve space for a **core memory** section. This is a special, read-writeable part of the context that the agent can modify.
+
+The first code blocks demonstrate how to inject a simple memory object into the system prompt. By placing `[MEMORY]` and its contents directly in the instructions, the agent can use this information to answer questions, like recalling the user's name.
+
+```python
+# The agent's memory is a simple dictionary
+agent_memory = {"human": "Name: Bob"}
+
+# The system prompt tells the agent about the memory section
+system_prompt = "You are a chatbot. " \
++ "You have a section of your context called [MEMORY] " \
++ "that contains information relevant to your conversation"
+
+# The memory is formatted and included in the API call
+messages=[
+    {"role": "system", "content": system_prompt + "[MEMORY]\n" + json.dumps(agent_memory)},
+    {"role": "user", "content": "What is my name?"},
+]
+```
+
+-----
+
+### Section 2: Making Memory Editable with Tools
+
+This section introduces the core concept of **self-editing memory**. Instead of just reading from a static memory block, the agent is given a **tool** to modify it.
+
+#### Defining the `core_memory_save` Tool
+
+A simple Python function, `core_memory_save`, is defined. This function takes a `section` ('human' or 'agent') and a `memory` string and appends the new information to a global `agent_memory` dictionary.
+
+```python
+# A global dictionary to store the agent's memory
+agent_memory = {"human": "", "agent": ""}
+
+# The function that will act as our tool
+def core_memory_save(section: str, memory: str): 
+    agent_memory[section] += '\n' 
+    agent_memory[section] += memory
+```
+
+To make this Python function usable by the LLM, a detailed **tool schema** is created. This schema is a JSON object that tells the OpenAI API:
+
+  * The function's `name` (`core_memory_save`).
+  * A natural language `description` of what it does.
+  * The `parameters` it expects (in this case, `section` and `memory`), including their types and descriptions.
+
+#### Executing a Tool Call
+
+When the user provides new information (e.g., "My name is Bob"), the notebook sends this message to the LLM along with the `core_memory_save` tool schema.
+
+The LLM, understanding the user's intent, doesn't respond with a text message. Instead, it returns a **tool call**, which is a structured request to execute the `core_memory_save` function with the appropriate arguments (`section='human'`, `memory='Name: Bob'`).
+
+Crucially, the OpenAI API **does not run the function itself**. Your code is responsible for:
+
+1.  Parsing the `tool_calls` object from the LLM's response.
+2.  Extracting the function name and arguments.
+3.  Executing the actual Python function (`core_memory_save(**arguments)`).
+
+After execution, the `agent_memory` dictionary is updated. On the next turn, when the user asks, "what is my name," the updated memory is passed in the context, and the agent correctly answers "Bob".
+
+-----
+
+### Section 3: Implementing an Agentic Loop for Multi-Step Reasoning
+
+The final and most advanced part of the notebook is creating an **agentic loop**. The problem with the previous section is that the agent can only perform one action at a time: either call a tool or respond to the user. An agentic loop allows for **multi-step reasoning**, where the agent can chain multiple actions together in a single turn.
+
+The `agent_step` function implements this loop:
+
+1.  It takes a `user_message` and prepares the initial context, including the system prompt and the current state of `agent_memory`.
+2.  It enters a `while True:` loop, which represents the agent's "thought process".
+3.  Inside the loop, it calls the LLM with the current message history.
+4.  **If the LLM responds with a tool call**:
+      * The code prints that a tool is being called.
+      * It executes the `core_memory_save` function to update the `agent_memory`.
+      * It appends both the agent's tool call and a "tool response" message to the conversation history. This lets the agent know its action was successful.
+      * The loop continues, allowing the agent to take another action immediately.
+5.  **If the LLM responds with a regular message** (i.e., no tool call):
+      * This signifies the end of the agent's reasoning process for this turn.
+      * The function returns the content of the message to be displayed to the user, and the loop breaks.
+
+This structure allows the agent to receive a message like "my name is bob," first call the `core_memory_save` tool, and then, in the same turn, generate a final response to the user like "Got it\! Your name is Bob." This mimics a more natural and intelligent conversational flow.
