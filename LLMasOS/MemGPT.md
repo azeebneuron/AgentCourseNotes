@@ -47,24 +47,3 @@ This is a virtually unlimited storage space, kept in a persistent database, that
 * **Persistence**: The entire **agent state**—including all memory tiers and tools—is stored in a database. This means an agent can be shut down and restarted later, and it will remember everything from its past interactions, making it truly persistent.
 
 ***
-
-### Jupyter Notebook Exercises
-
-1.  **Memory Triage Simulation**:
-    * Write a Python function `decide_memory_location(info: str, importance: int) -> str`.
-    * The function should take a piece of information and an "importance" score from 1-10.
-    * If importance is 9-10, it should return `"Core Memory"`.
-    * If importance is 5-8, it should return `"Archival Memory"`.
-    * If importance is 1-4, it should return `"Discard"`.
-    * Test it with examples like `decide_memory_location("User's name is Jane", 10)` and `decide_memory_location("User mentioned they like the color blue", 6)`.
-
-2.  **Conceptual Heartbeat Loop**:
-    * Write a pseudo-code or Python function that simulates the agentic loop.
-    * The function should call a mock `LLM` which returns a dictionary containing either a `tool_call` or a `message`.
-    * If the `tool_call` dictionary contains a key `request_heartbeat: True`, the loop should immediately run again.
-    * If there's no heartbeat request or if the LLM returns a `message`, the loop should terminate and return the final message.
-
-3.  **Designing a System Prompt**:
-    * Write a system prompt for a MemGPT-powered cooking assistant.
-    * In the prompt, explain the difference between Core Memory ("for storing the user's dietary restrictions and favorite cuisines") and Archival Memory ("for storing full recipes the user provides").
-    * Instruct the agent to always use the `edit_memory` tool to update dietary restrictions in Core Memory if the user mentions a change.
